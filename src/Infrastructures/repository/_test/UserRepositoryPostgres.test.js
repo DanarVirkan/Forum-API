@@ -5,6 +5,7 @@ const NewUser = require('../../../Domains/users/entities/NewUser');
 const AddedUser = require('../../../Domains/users/entities/AddedUser');
 const pool = require('../../database/postgres/pool');
 const UserRepositoryPostgres = require('../UserRepositoryPostgres');
+const NotFoundError = require('../../../Commons/exceptions/NotFoundError');
 
 describe('UserRepositoryPostgres', () => {
   it('should be instance of UserRepository domain', () => {
@@ -112,6 +113,26 @@ describe('UserRepositoryPostgres', () => {
 
         // Assert
         expect(userId).toEqual('user-321');
+      });
+    });
+    describe('getUsernameById', () => {
+      it('should throw InvariantError when id not found', async () => {
+        const userId = 'user-123';
+        const userRepositoryPostgres = new UserRepositoryPostgres(pool, {});
+
+        await expect(userRepositoryPostgres.getUsernameById(userId))
+          .rejects.toThrowError(NotFoundError);
+      });
+      it('should return username correctly', async () => {
+        const userId = 'user-123';
+        const testUsername = 'user coba';
+        await UsersTableTestHelper.addUser({ id: userId, username: testUsername });
+        const userRepositoryPostgres = new UserRepositoryPostgres(pool, {});
+
+        const username = await userRepositoryPostgres.getUsernameById(userId);
+        expect(username).toEqual(testUsername);
+        await expect(userRepositoryPostgres.getUsernameById(userId))
+          .resolves.not.toThrowError(NotFoundError);
       });
     });
   });

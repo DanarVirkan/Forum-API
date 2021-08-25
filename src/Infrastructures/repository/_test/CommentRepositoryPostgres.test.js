@@ -7,6 +7,7 @@ const NewComment = require('../../../Domains/comments/entities/NewComment');
 const CommentRepositoryPostgres = require('../CommentRepositoryPostgres');
 const CommentRepository = require('../../../Domains/comments/CommentRepository');
 const CommentsTableTestHelper = require('../../../../tests/CommentsTableTestHelper');
+const NotFoundError = require('../../../Commons/exceptions/NotFoundError');
 
 describe('CommentRepository postgres', () => {
   it('should be instance of ThreadRepository domain', () => {
@@ -56,6 +57,43 @@ describe('CommentRepository postgres', () => {
       });
     });
 
+    describe('getCommentByThreadId function', () => {
+      it('should return comment from thread', async () => {
+        const commentRepository = new CommentRepositoryPostgres(pool, {});
+        const userId = 'user-123';
+        const threadId = 'thread-123';
+        const commentId = 'comment-123';
+
+        await UsersTableTestHelper.addUser({ id: userId });
+        await ThreadTableTestHelper.addThread(threadId, {}, userId);
+        await CommentsTableTestHelper.addComment(commentId, {}, userId, threadId);
+
+        await expect(commentRepository.getCommentByThreadId(threadId))
+          .resolves.not.toThrowError(InvariantError);
+      });
+    });
+
+    describe('getCommentOwner function', () => {
+      it('should return comment owner if exist', async () => {
+        const commentRepository = new CommentRepositoryPostgres(pool, {});
+        const userId = 'user-123';
+        const threadId = 'thread-123';
+        const commentId = 'comment-123';
+
+        await UsersTableTestHelper.addUser({ id: userId });
+        await ThreadTableTestHelper.addThread(threadId, {}, userId);
+        await CommentsTableTestHelper.addComment(commentId, {}, userId, threadId);
+
+        await expect(commentRepository.getCommentOwner(commentId))
+          .resolves.not.toThrowError(NotFoundError);
+      });
+      it('should throw NotFoundError when comment not exist', async () => {
+        const commentRepository = new CommentRepositoryPostgres(pool, {});
+
+        await expect(commentRepository.getCommentOwner('comment-123')).rejects.toThrowError(NotFoundError);
+      });
+    });
+
     describe('deleteCommentById function', () => {
       it('should remove comment from database if available', async () => {
         const commentRepository = new CommentRepositoryPostgres(pool, {});
@@ -72,12 +110,12 @@ describe('CommentRepository postgres', () => {
         await CommentsTableTestHelper
           .addComment(fakeId, { content: 'isi komentar' }, fakeUserId, fakeThreadId);
         await expect(commentRepository.deleteCommentById(fakeId))
-          .resolves.not.toThrow(InvariantError);
+          .resolves.not.toThrow(NotFoundError);
       });
       it('should throw error when remove comment with invalid commentId from database', async () => {
         const commentRepository = new CommentRepositoryPostgres(pool, {});
         const fakeId = 'comment-123';
-        await expect(commentRepository.deleteCommentById(fakeId)).rejects.toThrow(InvariantError);
+        await expect(commentRepository.deleteCommentById(fakeId)).rejects.toThrow(NotFoundError);
       });
     });
   });

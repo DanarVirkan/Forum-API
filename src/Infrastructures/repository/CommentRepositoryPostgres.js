@@ -1,4 +1,4 @@
-const InvariantError = require('../../Commons/exceptions/InvariantError');
+const NotFoundError = require('../../Commons/exceptions/NotFoundError');
 const CommentRepository = require('../../Domains/comments/CommentRepository');
 const AddedComment = require('../../Domains/comments/entities/AddedComment');
 
@@ -20,14 +20,35 @@ class CommentRepositoryPostgres extends CommentRepository {
     return new AddedComment({ ...result.rows[0] });
   }
 
-  async deleteCommentById(commentId) {
+  async getCommentByThreadId(threadId) {
     const query = {
-      text: 'DELETE FROM comments WHERE id = $1 RETURNING id',
+      text: 'SELECT * FROM comments WHERE thread_id = $1',
+      values: [threadId],
+    };
+    const result = await this._pool.query(query);
+    return result.rows;
+  }
+
+  async getCommentOwner(commentId) {
+    const query = {
+      text: 'SELECT owner FROM comments WHERE id = $1',
       values: [commentId],
     };
     const result = await this._pool.query(query);
     if (!result.rowCount) {
-      throw new InvariantError('Comment is not found');
+      throw new NotFoundError('Comment is not found');
+    }
+    return result.rows[0].owner;
+  }
+
+  async deleteCommentById(commentId) {
+    const query = {
+      text: 'UPDATE comments SET content = \'**komentar telah dihapus**\' WHERE id = $1 RETURNING id',
+      values: [commentId],
+    };
+    const result = await this._pool.query(query);
+    if (!result.rowCount) {
+      throw new NotFoundError('Comment is not found');
     }
   }
 }
