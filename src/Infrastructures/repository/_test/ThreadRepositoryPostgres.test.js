@@ -67,8 +67,16 @@ describe('ThreadRepository postgres', () => {
           body: 'isi thread',
         }, userId);
 
+        const thread = await threadRepository.getThreadById('thread-123');
+
         await expect(threadRepository.getThreadById('thread-123'))
           .resolves.not.toThrow(NotFoundError);
+        expect(thread).toHaveProperty('id');
+        expect(thread).toHaveProperty('title');
+        expect(thread).toHaveProperty('body');
+        expect(thread).toHaveProperty('owner');
+        expect(thread.id).toEqual(threadId);
+        expect(thread.owner).toEqual(userId);
       });
     });
   });

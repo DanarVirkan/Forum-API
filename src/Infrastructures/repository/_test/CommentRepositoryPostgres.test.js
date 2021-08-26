@@ -58,7 +58,7 @@ describe('CommentRepository postgres', () => {
     });
 
     describe('getCommentByThreadId function', () => {
-      it('should return comment from thread', async () => {
+      it('should return comment from thread and it\'s owner username', async () => {
         const commentRepository = new CommentRepositoryPostgres(pool, {});
         const userId = 'user-123';
         const threadId = 'thread-123';
@@ -84,8 +84,11 @@ describe('CommentRepository postgres', () => {
         await ThreadTableTestHelper.addThread(threadId, {}, userId);
         await CommentsTableTestHelper.addComment(commentId, {}, userId, threadId);
 
+        const owner = await commentRepository.getCommentOwner(commentId);
+
         await expect(commentRepository.getCommentOwner(commentId))
           .resolves.not.toThrowError(NotFoundError);
+        expect(owner).toEqual(userId);
       });
       it('should throw NotFoundError when comment not exist', async () => {
         const commentRepository = new CommentRepositoryPostgres(pool, {});
