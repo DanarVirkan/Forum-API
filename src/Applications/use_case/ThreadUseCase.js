@@ -1,11 +1,12 @@
 const NewComment = require('../../Domains/comments/entities/NewComment');
+const NewReply = require('../../Domains/replies/entities/NewReply');
 const NewThread = require('../../Domains/threads/entities/NewThread');
 
 class ThreadUseCase {
-  constructor({ threadRepository, commentRepository, userRepository }) {
+  constructor({ threadRepository, commentRepository, replyRepository }) {
     this._threadRepository = threadRepository;
     this._commentRepository = commentRepository;
-    this._userRepository = userRepository;
+    this._replyRepository = replyRepository;
   }
 
   async addThread(useCasePayload, userId) {
@@ -29,11 +30,6 @@ class ThreadUseCase {
     await this._commentRepository.deleteCommentById(commentId);
   }
 
-  async getUsernameById(userId) {
-    const result = await this._userRepository.getUsernameById(userId);
-    return result;
-  }
-
   async getCommentByThreadId(threadId) {
     const result = await this._commentRepository.getCommentByThreadId(threadId);
     return result;
@@ -43,6 +39,28 @@ class ThreadUseCase {
     const owner = await this._commentRepository.getCommentOwner(commentId);
     if (owner !== userId) {
       throw new Error('THREAD.USE_CASE.NOT_THE_COMMENT_OWNER');
+    }
+  }
+
+  async addReplyByCommentId(useCasePayload, userId, commentId) {
+    const newReply = new NewReply(useCasePayload);
+    const result = await this._replyRepository.addReplyByCommentId(newReply, userId, commentId);
+    return result;
+  }
+
+  async getReplyByCommentId(replyId) {
+    const result = await this._replyRepository.getReplyByCommentId(replyId);
+    return result;
+  }
+
+  async deleteReplyById(replyId) {
+    await this._replyRepository.deleteReplyById(replyId);
+  }
+
+  async verifyReply(replyId, userId) {
+    const owner = await this._replyRepository.getReplyOwner(replyId);
+    if (owner !== userId) {
+      throw new Error('THREAD.USE_CASE.NOT_THE_REPLY_OWNER');
     }
   }
 }
