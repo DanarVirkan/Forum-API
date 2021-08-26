@@ -22,7 +22,7 @@ class CommentRepositoryPostgres extends CommentRepository {
 
   async getCommentByThreadId(threadId) {
     const query = {
-      text: 'SELECT * FROM comments WHERE thread_id = $1',
+      text: 'SELECT comments.*, users.username AS username FROM comments JOIN users ON comments.owner = users.id WHERE thread_id = $1',
       values: [threadId],
     };
     const result = await this._pool.query(query);

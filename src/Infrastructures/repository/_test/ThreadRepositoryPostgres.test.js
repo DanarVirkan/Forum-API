@@ -75,6 +75,7 @@ describe('ThreadRepository postgres', () => {
         expect(thread).toHaveProperty('title');
         expect(thread).toHaveProperty('body');
         expect(thread).toHaveProperty('owner');
+        expect(thread).toHaveProperty('username');
         expect(thread.id).toEqual(threadId);
         expect(thread.owner).toEqual(userId);
       });

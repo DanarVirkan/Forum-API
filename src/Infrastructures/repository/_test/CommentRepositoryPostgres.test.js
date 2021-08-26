@@ -68,8 +68,12 @@ describe('CommentRepository postgres', () => {
         await ThreadTableTestHelper.addThread(threadId, {}, userId);
         await CommentsTableTestHelper.addComment(commentId, {}, userId, threadId);
 
+        const comment = await commentRepository.getCommentByThreadId(threadId);
+
         await expect(commentRepository.getCommentByThreadId(threadId))
           .resolves.not.toThrowError(InvariantError);
+        expect(comment).toHaveLength(1);
+        expect(comment[0]).toHaveProperty('username');
       });
     });
 
