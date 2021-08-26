@@ -13,7 +13,8 @@ const RepliesTableTestHelper = {
       text: 'SELECT * FROM replies WHERE id = $1',
       values: [replyId],
     };
-    return pool.query(query);
+    const result = await pool.query(query);
+    return result.rows;
   },
   async cleanTable() {
     const query = {
