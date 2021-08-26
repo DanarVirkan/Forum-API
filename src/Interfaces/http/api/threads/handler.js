@@ -53,11 +53,11 @@ class ThreadsHandler {
     const comments = await this._threadUseCase.getCommentByThreadId(threadId);
 
     const mappedComments = await Promise.all(comments.map(async ({
-      id: commentId, content, date: commentDate, owner: commentOwner,
+      id: commentId, content, date: commentDate, owner: commentOwner, is_deleted: deleted,
     }) => {
       const commentUsername = await this._threadUseCase.getUsernameById(commentOwner);
       return {
-        id: commentId, username: commentUsername, date: commentDate, content,
+        id: commentId, username: commentUsername, date: commentDate, content: deleted ? '**komentar telah dihapus**' : content,
       };
     }));
 
