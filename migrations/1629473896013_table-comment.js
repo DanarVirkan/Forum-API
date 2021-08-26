@@ -25,6 +25,9 @@ exports.up = (pgm) => {
       notNull: true,
       references: '"threads"',
     },
+    is_deleted: {
+      type: 'BOOLEAN',
+    },
   });
   pgm.createIndex('comments', 'owner');
   pgm.createIndex('comments', 'thread_id');
