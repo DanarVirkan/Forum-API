@@ -48,8 +48,8 @@ class ThreadUseCase {
     return result;
   }
 
-  async getReplyByCommentId(replyId) {
-    const result = await this._replyRepository.getReplyByCommentId(replyId);
+  async getReplyByCommentId(commentId) {
+    const result = await this._replyRepository.getReplyByCommentId(commentId);
     return result;
   }
 
