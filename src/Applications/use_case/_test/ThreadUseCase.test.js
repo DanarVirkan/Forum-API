@@ -94,16 +94,22 @@ describe('ThreadUseCase', () => {
   });
   it('should orchestrating the delete comment action correctly', async () => {
     const commentId = 'comment-123';
+    const threadId = 'thread-123';
 
+    const mockThreadRepository = new ThreadRepository();
+    mockThreadRepository.getThreadById = jest.fn()
+      .mockImplementation(() => Promise.resolve());
     const mockCommentRepository = new CommentRepository();
     mockCommentRepository.deleteCommentById = jest.fn()
       .mockImplementation(() => Promise.resolve());
 
     const getThreadUseCase = new ThreadUseCase({
+      threadRepository: mockThreadRepository,
       commentRepository: mockCommentRepository,
     });
 
-    await getThreadUseCase.deleteCommentById(commentId);
+    await getThreadUseCase.deleteComment(commentId, threadId);
+    expect(mockThreadRepository.getThreadById).toBeCalledWith(threadId);
     expect(mockCommentRepository.deleteCommentById).toBeCalledWith(commentId);
   });
   it('should orchestrating the get comment by threadId action correctly', async () => {
@@ -165,9 +171,13 @@ describe('ThreadUseCase', () => {
     const mockReplyRepository = new ReplyRepository();
     mockReplyRepository.addReplyByCommentId = jest.fn()
       .mockImplementation(() => Promise.resolve(addedReply));
+    const mockCommentRepository = new CommentRepository();
+    mockCommentRepository.getCommentOwner = jest.fn()
+      .mockImplementation(() => Promise.resolve(userId));
 
     const getThreadUseCase = new ThreadUseCase({
       replyRepository: mockReplyRepository,
+      commentRepository: mockCommentRepository,
     });
 
     await getThreadUseCase.addReplyByCommentId(newReply, userId, commentId);
@@ -175,16 +185,28 @@ describe('ThreadUseCase', () => {
   });
   it('should orchestrating the delete reply action correctly', async () => {
     const replyId = 'reply-123';
+    const commentId = 'comment-123';
+    const threadId = 'thread-123';
 
+    const mockThreadRepository = new ThreadRepository();
+    mockThreadRepository.getThreadById = jest.fn()
+      .mockImplementation(() => Promise.resolve());
+    const mockCommentRepository = new CommentRepository();
+    mockCommentRepository.getCommentOwner = jest.fn()
+      .mockImplementation(() => Promise.resolve());
     const mockReplyRepository = new ReplyRepository();
     mockReplyRepository.deleteReplyById = jest.fn()
       .mockImplementation(() => Promise.resolve());
 
     const getThreadUseCase = new ThreadUseCase({
+      threadRepository: mockThreadRepository,
+      commentRepository: mockCommentRepository,
       replyRepository: mockReplyRepository,
     });
 
-    await getThreadUseCase.deleteReplyById(replyId);
+    await getThreadUseCase.deleteReply(replyId, commentId, threadId);
+    expect(mockThreadRepository.getThreadById).toBeCalledWith(threadId);
+    expect(mockCommentRepository.getCommentOwner).toBeCalledWith(commentId);
     expect(mockReplyRepository.deleteReplyById).toBeCalledWith(replyId);
   });
   it('should orchestrating the get reply by commentId action correctly', async () => {

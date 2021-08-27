@@ -26,7 +26,8 @@ class ThreadUseCase {
     return result;
   }
 
-  async deleteCommentById(commentId) {
+  async deleteComment(commentId, threadId) {
+    await this._threadRepository.getThreadById(threadId);
     await this._commentRepository.deleteCommentById(commentId);
   }
 
@@ -43,6 +44,7 @@ class ThreadUseCase {
   }
 
   async addReplyByCommentId(useCasePayload, userId, commentId) {
+    await this._commentRepository.getCommentOwner(commentId);
     const newReply = new NewReply(useCasePayload);
     const result = await this._replyRepository.addReplyByCommentId(newReply, userId, commentId);
     return result;
@@ -53,7 +55,9 @@ class ThreadUseCase {
     return result;
   }
 
-  async deleteReplyById(replyId) {
+  async deleteReply(replyId, commentId, threadId) {
+    await this._threadRepository.getThreadById(threadId);
+    await this._commentRepository.getCommentOwner(commentId);
     await this._replyRepository.deleteReplyById(replyId);
   }
 
