@@ -23,6 +23,7 @@ DomainErrorTranslator._directories = {
   'NEW_COMMENT.NOT_CONTAIN_NEEDED_PROPERTY': new InvariantError('tidak dapat membuat komentar baru karena properti yang dibutuhkan tidak ada'),
   'NEW_COMMENT.NOT_MEET_DATA_TYPE_SPECIFICATION': new InvariantError('tidak dapat membuat komentar baru karena tipe data tidak sesuai'),
   'THREAD.USE_CASE.NOT_THE_COMMENT_OWNER': new AuthorizationError('Anda tidak memiliki hak akses untuk komentar ini'),
+  'THREAD.USE_CASE.NOT_THE_REPLY_OWNER': new AuthorizationError('Anda tidak memiliki hak akses untuk balasan ini'),
 };
 
 module.exports = DomainErrorTranslator;
