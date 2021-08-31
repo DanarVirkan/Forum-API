@@ -13,15 +13,11 @@ class ThreadsHandler {
 
   async postThreadHandler(request, h) {
     const { id: userId } = request.auth.credentials;
-    const { id, title, owner } = await this._threadUseCase.addThread(request.payload, userId);
+    const addedThread = await this._threadUseCase.addThread(request.payload, userId);
     const response = h.response({
       status: 'success',
       data: {
-        addedThread: {
-          id,
-          title,
-          owner,
-        },
+        addedThread,
       },
     });
     response.code(201);
@@ -31,16 +27,12 @@ class ThreadsHandler {
   async postCommentByThreadIdHandler(request, h) {
     const { id: userId } = request.auth.credentials;
     const { threadId } = request.params;
-    const { id, content, owner } = await this._threadUseCase
-      .addCommentByThreadId(request.payload, userId, threadId);
+    const addedComment = await this._threadUseCase
+      .addCommentByThreadId(request.payload, { userId, threadId });
     const response = h.response({
       status: 'success',
       data: {
-        addedComment: {
-          id,
-          content,
-          owner,
-        },
+        addedComment,
       },
     }).code(201);
     return response;
@@ -49,17 +41,12 @@ class ThreadsHandler {
   async postReplyByThreadAndCommentIdHandler(request, h) {
     const { id: userId } = request.auth.credentials;
     const { threadId, commentId } = request.params;
-    await this._threadUseCase.getThreadById(threadId);
-    const { id, content, owner } = await this._threadUseCase
-      .addReplyByCommentId(request.payload, userId, commentId);
+    const addedReply = await this._threadUseCase
+      .addReplyByCommentAndThreadId(request.payload, { userId, commentId, threadId });
     const response = h.response({
       status: 'success',
       data: {
-        addedReply: {
-          id,
-          content,
-          owner,
-        },
+        addedReply,
       },
     }).code(201);
     return response;
@@ -67,41 +54,12 @@ class ThreadsHandler {
 
   async getThreadByIdHandler(request, h) {
     const { threadId } = request.params;
-    const {
-      id, title, body, date, username,
-    } = await this._threadUseCase.getThreadById(threadId);
-
-    const comments = await this._threadUseCase.getCommentByThreadId(threadId);
-
-    const mappedComments = await Promise.all(comments.map(async ({
-      id: commentId, content, date: commentDate, username: commentUsername, is_deleted: deleted,
-    }) => {
-      const replies = await this._threadUseCase.getReplyByCommentId(commentId);
-      const mappedReplies = replies.map(({
-        id: replyId,
-        content: replyContent,
-        date: replyDate,
-        username: replyUsername,
-        is_deleted: replyDeleted,
-      }) => ({
-        id: replyId, content: replyDeleted ? '**balasan telah dihapus**' : replyContent, date: replyDate, username: replyUsername,
-      }));
-      return {
-        id: commentId, username: commentUsername, date: commentDate, replies: mappedReplies, content: deleted ? '**komentar telah dihapus**' : content,
-      };
-    }));
+    const thread = await this._threadUseCase.getThreadById(threadId);
 
     return h.response({
       status: 'success',
       data: {
-        thread: {
-          id,
-          title,
-          body,
-          date,
-          username,
-          comments: mappedComments,
-        },
+        thread,
       },
     }).code(200);
   }
@@ -109,8 +67,7 @@ class ThreadsHandler {
   async deleteCommentByIdHandler(request) {
     const { id: userId } = request.auth.credentials;
     const { commentId, threadId } = request.params;
-    await this._threadUseCase.verifyComment(commentId, userId);
-    await this._threadUseCase.deleteComment(commentId, threadId);
+    await this._threadUseCase.deleteComment({ commentId, threadId, userId });
     return {
       status: 'success',
     };
@@ -120,8 +77,9 @@ class ThreadsHandler {
     const { id } = request.auth.credentials;
     const { replyId, commentId, threadId } = request.params;
 
-    await this._threadUseCase.verifyReply(replyId, id);
-    await this._threadUseCase.deleteReply(replyId, commentId, threadId);
+    await this._threadUseCase.deleteReply({
+      replyId, commentId, threadId, userId: id,
+    });
     return {
       status: 'success',
     };

@@ -5,7 +5,6 @@ const NewThread = require('../../../Domains/threads/entities/NewThread');
 const ThreadRepository = require('../../../Domains/threads/ThreadRepository');
 const ThreadUseCase = require('../ThreadUseCase');
 const CommentRepository = require('../../../Domains/comments/CommentRepository');
-const UserRepository = require('../../../Domains/users/UserRepository');
 const ReplyRepository = require('../../../Domains/replies/ReplyRepository');
 const AddedReply = require('../../../Domains/replies/entities/AddedReply');
 const NewReply = require('../../../Domains/replies/entities/NewReply');
@@ -43,22 +42,49 @@ describe('ThreadUseCase', () => {
   it('should orchestrating the get thread action correctly', async () => {
     const threadId = 'thread-123';
     const userId = 'user-123';
-    const expectedAddedThread = new AddedThread({
+
+    const expectedThread = {
       id: threadId,
-      title: 'coba thread',
-      owner: userId,
-    });
+      title: 'Coba Judul',
+      body: 'isi thread',
+      username: 'dicoding',
+    };
+
+    const arrayComment = [{
+      id: 'comment-123',
+      username: 'dicoding',
+    }, {
+      id: 'comment-666',
+      username: 'dicoding',
+    }];
+
+    const arrayReply = [{
+      id: 'reply-123',
+      username: 'dicoding',
+    }, {
+      id: 'reply-666',
+      username: 'dicoding',
+    }];
+
     const mockThreadRepository = new ThreadRepository();
     mockThreadRepository.getThreadById = jest.fn()
-      .mockImplementation(() => Promise.resolve(expectedAddedThread));
+      .mockImplementation(() => Promise.resolve(expectedThread));
+    const mockCommentRepository = new CommentRepository();
+    mockCommentRepository.getCommentByThreadId = jest.fn()
+      .mockImplementation(() => Promise.resolve(arrayComment));
+    const mockReplyRepository = new ReplyRepository();
+    mockReplyRepository.getReplyByCommentId = jest.fn()
+      .mockImplementation(() => Promise.resolve(arrayReply));
+
     const getThreadUseCase = new ThreadUseCase({
       threadRepository: mockThreadRepository,
+      commentRepository: mockCommentRepository,
+      replyRepository: mockReplyRepository,
     });
 
-    const getThread = await getThreadUseCase.getThreadById(threadId);
-
-    expect(getThread).toStrictEqual(expectedAddedThread);
+    await getThreadUseCase.getThreadById(threadId);
     expect(mockThreadRepository.getThreadById).toBeCalledWith(threadId);
+    expect(mockCommentRepository.getCommentByThreadId).toBeCalledWith(threadId);
   });
   it('should orchestrating the add comment action correctly', async () => {
     const userId = 'user-123';
@@ -86,13 +112,14 @@ describe('ThreadUseCase', () => {
     });
 
     const addedComment = await getThreadUseCase
-      .addCommentByThreadId(useCasePayload, userId, threadId);
+      .addCommentByThreadId(useCasePayload, { userId, threadId });
 
     expect(addedComment).toStrictEqual(expectedAddedComment);
     expect(mockCommentRepository.addCommentByThreadId)
       .toBeCalledWith(new NewComment(useCasePayload), userId, threadId);
   });
   it('should orchestrating the delete comment action correctly', async () => {
+    const userId = 'user-123';
     const commentId = 'comment-123';
     const threadId = 'thread-123';
 
@@ -102,60 +129,46 @@ describe('ThreadUseCase', () => {
     const mockCommentRepository = new CommentRepository();
     mockCommentRepository.deleteCommentById = jest.fn()
       .mockImplementation(() => Promise.resolve());
+    mockCommentRepository.getCommentOwner = jest.fn()
+      .mockImplementation(() => Promise.resolve(userId));
 
     const getThreadUseCase = new ThreadUseCase({
       threadRepository: mockThreadRepository,
       commentRepository: mockCommentRepository,
     });
 
-    await getThreadUseCase.deleteComment(commentId, threadId);
+    await getThreadUseCase.deleteComment({ commentId, threadId, userId });
     expect(mockThreadRepository.getThreadById).toBeCalledWith(threadId);
     expect(mockCommentRepository.deleteCommentById).toBeCalledWith(commentId);
+    expect(mockCommentRepository.getCommentOwner).toBeCalledWith(commentId);
   });
-  it('should orchestrating the get comment by threadId action correctly', async () => {
-    const threadId = 'thread-123';
-    const mockCommentRepository = new CommentRepository();
-    mockCommentRepository.getCommentByThreadId = jest.fn()
-      .mockImplementation(() => Promise.resolve());
-
-    const getThreadUseCase = new ThreadUseCase({
-      commentRepository: mockCommentRepository,
-    });
-
-    await getThreadUseCase.getCommentByThreadId(threadId);
-    expect(mockCommentRepository.getCommentByThreadId).toBeCalledWith(threadId);
-  });
-  it('should orchestrating the verify comment action correctly', async () => {
-    const commentId = 'comment-123';
+  it('should throw error when not the owner deleting comment', async () => {
     const userId = 'user-123';
+    const fakeId = 'user-666';
+    const commentId = 'comment-123';
+    const threadId = 'thread-123';
+
+    const mockThreadRepository = new ThreadRepository();
+    mockThreadRepository.getThreadById = jest.fn()
+      .mockImplementation(() => Promise.resolve());
     const mockCommentRepository = new CommentRepository();
+    mockCommentRepository.deleteCommentById = jest.fn()
+      .mockImplementation(() => Promise.resolve());
     mockCommentRepository.getCommentOwner = jest.fn()
       .mockImplementation(() => Promise.resolve(userId));
 
     const getThreadUseCase = new ThreadUseCase({
+      threadRepository: mockThreadRepository,
       commentRepository: mockCommentRepository,
     });
 
-    await expect(getThreadUseCase.verifyComment(commentId, userId))
-      .resolves.not.toThrowError('THREAD.USE_CASE.NOT_THE_COMMENT_OWNER');
-  });
-  it('should throw error when comment owner is not same as userId', async () => {
-    const commentId = 'comment-123';
-    const userId = 'user-123';
-    const commentOwner = 'user-666';
-    const mockCommentRepository = new CommentRepository();
-    mockCommentRepository.getCommentOwner = jest.fn()
-      .mockImplementation(() => Promise.resolve(commentOwner));
-
-    const getThreadUseCase = new ThreadUseCase({
-      commentRepository: mockCommentRepository,
-    });
-
-    await expect(getThreadUseCase.verifyComment(commentId, userId))
-      .rejects.toThrowError('THREAD.USE_CASE.NOT_THE_COMMENT_OWNER');
+    await expect(getThreadUseCase.deleteComment({ commentId, threadId, fakeId }))
+      .rejects.toThrowError(Error);
+    expect(mockCommentRepository.getCommentOwner).toBeCalledWith(commentId);
   });
   it('should orchestrating the add reply by commentId and threadId action correctly', async () => {
     const userId = 'user-123';
+    const threadId = 'thread-123';
     const commentId = 'comment-123';
     const replyId = 'reply-123';
     const replyPayload = {
@@ -168,6 +181,9 @@ describe('ThreadUseCase', () => {
     });
     const newReply = new NewReply(replyPayload);
 
+    const mockThreadRepository = new ThreadRepository();
+    mockThreadRepository.getThreadById = jest.fn()
+      .mockImplementation(() => Promise.resolve());
     const mockReplyRepository = new ReplyRepository();
     mockReplyRepository.addReplyByCommentId = jest.fn()
       .mockImplementation(() => Promise.resolve(addedReply));
@@ -176,14 +192,16 @@ describe('ThreadUseCase', () => {
       .mockImplementation(() => Promise.resolve(userId));
 
     const getThreadUseCase = new ThreadUseCase({
+      threadRepository: mockThreadRepository,
       replyRepository: mockReplyRepository,
       commentRepository: mockCommentRepository,
     });
 
-    await getThreadUseCase.addReplyByCommentId(newReply, userId, commentId);
+    await getThreadUseCase.addReplyByCommentAndThreadId(newReply, { userId, commentId, threadId });
     expect(mockReplyRepository.addReplyByCommentId).toBeCalledWith(newReply, userId, commentId);
   });
   it('should orchestrating the delete reply action correctly', async () => {
+    const userId = 'user-123';
     const replyId = 'reply-123';
     const commentId = 'comment-123';
     const threadId = 'thread-123';
@@ -197,6 +215,8 @@ describe('ThreadUseCase', () => {
     const mockReplyRepository = new ReplyRepository();
     mockReplyRepository.deleteReplyById = jest.fn()
       .mockImplementation(() => Promise.resolve());
+    mockReplyRepository.getReplyOwner = jest.fn()
+      .mockImplementation(() => Promise.resolve(userId));
 
     const getThreadUseCase = new ThreadUseCase({
       threadRepository: mockThreadRepository,
@@ -204,52 +224,11 @@ describe('ThreadUseCase', () => {
       replyRepository: mockReplyRepository,
     });
 
-    await getThreadUseCase.deleteReply(replyId, commentId, threadId);
+    await getThreadUseCase.deleteReply({
+      replyId, commentId, threadId, userId,
+    });
     expect(mockThreadRepository.getThreadById).toBeCalledWith(threadId);
     expect(mockCommentRepository.getCommentOwner).toBeCalledWith(commentId);
     expect(mockReplyRepository.deleteReplyById).toBeCalledWith(replyId);
-  });
-  it('should orchestrating the get reply by commentId action correctly', async () => {
-    const replyId = 'reply-123';
-    const mockReplyRepository = new ReplyRepository();
-    mockReplyRepository.getReplyByCommentId = jest.fn()
-      .mockImplementation(() => Promise.resolve());
-
-    const getThreadUseCase = new ThreadUseCase({
-      replyRepository: mockReplyRepository,
-    });
-
-    await getThreadUseCase.getReplyByCommentId(replyId);
-    expect(mockReplyRepository.getReplyByCommentId).toBeCalledWith(replyId);
-  });
-  it('should orchestrating the verify reply action correctly', async () => {
-    const replyId = 'reply-123';
-    const userId = 'user-123';
-    const mockReplyRepository = new ReplyRepository();
-    mockReplyRepository.getReplyOwner = jest.fn()
-      .mockImplementation(() => Promise.resolve(userId));
-
-    const getThreadUseCase = new ThreadUseCase({
-      replyRepository: mockReplyRepository,
-    });
-
-    await expect(getThreadUseCase.verifyReply(replyId, userId))
-      .resolves.not.toThrowError('THREAD.USE_CASE.NOT_THE_REPLY_OWNER');
-  });
-  it('should throw error when reply owner is not same as userId', async () => {
-    const replyId = 'reply-123';
-    const userId = 'user-123';
-    const replyOwner = 'user-666';
-
-    const mockReplyRepository = new ReplyRepository();
-    mockReplyRepository.getReplyOwner = jest.fn()
-      .mockImplementation(() => Promise.resolve(userId));
-
-    const getThreadUseCase = new ThreadUseCase({
-      replyRepository: mockReplyRepository,
-    });
-
-    await expect(getThreadUseCase.verifyReply(replyId, replyOwner))
-      .rejects.toThrowError('THREAD.USE_CASE.NOT_THE_REPLY_OWNER');
   });
 });
