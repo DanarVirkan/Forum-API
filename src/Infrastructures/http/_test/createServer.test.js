@@ -1,15 +1,8 @@
-const Jwt = require('@hapi/jwt');
 const ServerTestHelper = require('../../../../tests/ServerTestHelper');
-const ThreadTableTestHelper = require('../../../../tests/ThreadsTableTestHelper');
-const UsersTableTestHelper = require('../../../../tests/UsersTableTestHelper');
 const injections = require('../../injections');
 const createServer = require('../createServer');
 
 describe('HTTP server', () => {
-  afterEach(async () => {
-    await ThreadTableTestHelper.cleanTable();
-    await UsersTableTestHelper.cleanTable();
-  });
   it('should response 404 when request unregistered route', async () => {
     // Arrange
     const server = await createServer({});
