@@ -15,7 +15,6 @@ describe('DetailThread entities', () => {
       body: 'sebuah body thread',
       date: 1213134,
       username: 'dicoding',
-      comments: 'bghg',
     };
     expect(() => new DetailThread(payload)).toThrowError('DETAIL_THREAD.NOT_MEET_DATA_TYPE_SPECIFICATION');
   });
@@ -26,7 +25,6 @@ describe('DetailThread entities', () => {
       body: 'sebuah body thread',
       date: '2021-08-08T07:19:09.775Z',
       username: 'dicoding',
-      comments: [],
     };
     const {
       id, title, body, date, username, comments,
@@ -36,6 +34,5 @@ describe('DetailThread entities', () => {
     expect(body).toEqual(payload.body);
     expect(date).toEqual(payload.date);
     expect(username).toEqual(payload.username);
-    expect(comments).toEqual(payload.comments);
   });
 });
