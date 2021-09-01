@@ -6,6 +6,7 @@ const UsersTableTestHelper = require('../../../../tests/UsersTableTestHelper');
 const ThreadRepository = require('../../../Domains/threads/ThreadRepository');
 const NewThread = require('../../../Domains/threads/entities/NewThread');
 const AddedThread = require('../../../Domains/threads/entities/AddedThread');
+const DetailThread = require('../../../Domains/threads/entities/DetailThread');
 
 describe('ThreadRepository postgres', () => {
   it('should be instance of ThreadRepository domain', () => {
@@ -59,12 +60,18 @@ describe('ThreadRepository postgres', () => {
       it('should not throw NotFoundError if thread available', async () => {
         const threadId = 'thread-123';
         const userId = 'user-123';
-
-        const threadRepository = new ThreadRepositoryPostgres(pool, {});
-        await UsersTableTestHelper.addUser({ id: userId });
-        await ThreadTableTestHelper.addThread(threadId, {
+        const payload = {
+          id: threadId,
           title: 'coba thread',
           body: 'isi thread',
+          username: 'userCoba',
+        };
+
+        const threadRepository = new ThreadRepositoryPostgres(pool, {});
+        await UsersTableTestHelper.addUser({ id: userId, username: payload.username });
+        await ThreadTableTestHelper.addThread(threadId, {
+          title: payload.title,
+          body: payload.body,
         }, userId);
 
         const thread = await threadRepository.getThreadById('thread-123');
@@ -74,10 +81,8 @@ describe('ThreadRepository postgres', () => {
         expect(thread).toHaveProperty('id');
         expect(thread).toHaveProperty('title');
         expect(thread).toHaveProperty('body');
-        expect(thread).toHaveProperty('owner');
         expect(thread).toHaveProperty('username');
-        expect(thread.id).toEqual(threadId);
-        expect(thread.owner).toEqual(userId);
+        expect(thread).toHaveProperty('date');
       });
     });
   });
