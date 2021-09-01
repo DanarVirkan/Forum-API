@@ -27,7 +27,8 @@ exports.up = (pgm) => {
     },
     is_deleted: {
       type: 'BOOLEAN',
-      default: false,
+      notNull: true,
+      default: 'false',
     },
   });
   pgm.createIndex('comments', 'owner');
