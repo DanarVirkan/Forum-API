@@ -14,6 +14,7 @@ describe('DetailReply entities', () => {
       username: 'dicoding',
       date: 122,
       content: 'sebuah comment',
+      isDeleted: 'false',
     };
     expect(() => new DetailReply(payload)).toThrowError('DETAIL_REPLY.NOT_MEET_DATA_TYPE_SPECIFICATION');
   });
@@ -23,6 +24,7 @@ describe('DetailReply entities', () => {
       username: 'dicoding',
       date: '2021-08-08T07:59:18.982Z',
       content: 'sebuah comment',
+      isDeleted: false,
     };
     const {
       id, username, date, replies, content,
