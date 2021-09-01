@@ -22,7 +22,7 @@ describe('ReplyRepository postgres', () => {
       await UsersTableTestHelper.cleanTable();
     });
     afterAll(async () => {
-      await pool.end();
+      pool.end();
     });
     describe('addReplyByCommentId function', () => {
       it('should add reply in database when comment existed', async () => {

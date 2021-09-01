@@ -29,12 +29,13 @@ class ThreadsHandler {
     const { threadId } = request.params;
     const addedComment = await this._threadUseCase
       .addCommentByThreadId(request.payload, { userId, threadId });
-    return h.response({
+    const response = h.response({
       status: 'success',
       data: {
         addedComment,
       },
     }).code(201);
+    return response;
   }
 
   async postReplyByThreadAndCommentIdHandler(request, h) {
@@ -42,24 +43,25 @@ class ThreadsHandler {
     const { threadId, commentId } = request.params;
     const addedReply = await this._threadUseCase
       .addReplyByCommentAndThreadId(request.payload, { userId, commentId, threadId });
-    return h.response({
+    const response = h.response({
       status: 'success',
       data: {
         addedReply,
       },
     }).code(201);
+    return response;
   }
 
   async getThreadByIdHandler(request, h) {
     const { threadId } = request.params;
     const thread = await this._threadUseCase.getThreadById(threadId);
 
-    return {
+    return h.response({
       status: 'success',
       data: {
         thread,
       },
-    };
+    }).code(200);
   }
 
   async deleteCommentByIdHandler(request) {

@@ -1,6 +1,5 @@
 const NotFoundError = require('../../Commons/exceptions/NotFoundError');
 const AddedReply = require('../../Domains/replies/entities/AddedReply');
-const DetailReply = require('../../Domains/replies/entities/DetailReply');
 const ReplyRepository = require('../../Domains/replies/ReplyRepository');
 
 class ReplyRepositoryPostgres extends ReplyRepository {
@@ -29,11 +28,7 @@ class ReplyRepositoryPostgres extends ReplyRepository {
       values: [commentId],
     };
     const result = await this._pool.query(query);
-    return result.rows.map((payload) => new DetailReply({
-      ...payload,
-      date: new Date(payload.date).toISOString(),
-      isDeleted: payload.is_deleted,
-    }));
+    return result.rows;
   }
 
   async getReplyOwner(replyId) {

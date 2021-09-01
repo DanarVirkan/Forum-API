@@ -17,17 +17,37 @@ class ThreadUseCase {
   async getThreadById(threadId) {
     const comments = await this._commentRepository.getCommentByThreadId(threadId);
 
-    const mappedComment = await Promise.all(comments.map(async (comment) => {
-      const replies = await this._replyRepository.getReplyByCommentId(comment.id);
+    const mappedComment = await Promise.all(comments.map(async ({
+      id: commentId, content, date: commentDate, username: commentUsername, is_deleted: deleted,
+    }) => {
+      const replies = await this._replyRepository.getReplyByCommentId(commentId);
+      const mappedReplies = replies.map(({
+        id: replyId,
+        content: replyContent,
+        date: replyDate,
+        username: replyUsername,
+        is_deleted: replyDeleted,
+      }) => ({
+        id: replyId, content: replyDeleted ? '**balasan telah dihapus**' : replyContent, date: replyDate, username: replyUsername,
+      }));
       return {
-        ...comment,
-        replies,
+        id: commentId, username: commentUsername, date: commentDate, replies: mappedReplies, content: deleted ? '**komentar telah dihapus**' : content,
       };
     }));
 
-    const thread = await this._threadRepository.getThreadById(threadId);
+    const {
+      id,
+      title,
+      body,
+      date,
+      username,
+    } = await this._threadRepository.getThreadById(threadId);
     return {
-      ...thread,
+      id,
+      title,
+      body,
+      date,
+      username,
       comments: mappedComment,
     };
   }
