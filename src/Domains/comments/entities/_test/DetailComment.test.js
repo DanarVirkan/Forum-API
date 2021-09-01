@@ -15,6 +15,7 @@ describe('DetailComment entities', () => {
       date: '2021-08-08T07:59:18.982Z',
       replies: {},
       content: 'sebuah comment',
+      isDeleted: 'true',
     };
     expect(() => new DetailComment(payload)).toThrowError('DETAIL_COMMENT.NOT_MEET_DATA_TYPE_SPECIFICATION');
   });
@@ -23,16 +24,15 @@ describe('DetailComment entities', () => {
       id: 'comment-q_0uToswNf6i24RDYZJI3',
       username: 'dicoding',
       date: '2021-08-08T07:59:18.982Z',
-      replies: [],
       content: 'sebuah comment',
+      isDeleted: false,
     };
     const {
-      id, username, date, replies, content,
+      id, username, date, content,
     } = new DetailComment(payload);
     expect(id).toEqual(payload.id);
     expect(username).toEqual(payload.username);
     expect(date).toEqual(payload.date);
-    expect(replies).toEqual(payload.replies);
     expect(content).toEqual(payload.content);
   });
 });
