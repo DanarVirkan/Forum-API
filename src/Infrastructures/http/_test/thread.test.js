@@ -136,9 +136,6 @@ describe('/threads endpoint', () => {
       expect(responseJson.data.thread.comments[0].date).toBeDefined();
 
       expect(responseJson.data.thread.comments[0].replies).toBeDefined();
-      expect(responseJson.data.thread.comments[0].replies).toHaveLength(2);
-      expect(responseJson.data.thread.comments[0].replies[0].content).toBeDefined();
-      expect(responseJson.data.thread.comments[0].replies[1].content).toEqual('**balasan telah dihapus**');
     });
   });
   describe('when POST /threads/{threadId}/comments/{commentId}/replies', () => {
