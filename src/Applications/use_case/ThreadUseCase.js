@@ -3,10 +3,13 @@ const NewReply = require('../../Domains/replies/entities/NewReply');
 const NewThread = require('../../Domains/threads/entities/NewThread');
 
 class ThreadUseCase {
-  constructor({ threadRepository, commentRepository, replyRepository }) {
+  constructor({
+    threadRepository, commentRepository, replyRepository, likeRepository,
+  }) {
     this._threadRepository = threadRepository;
     this._commentRepository = commentRepository;
     this._replyRepository = replyRepository;
+    this._likeRepository = likeRepository;
   }
 
   async addThread(useCasePayload, userId) {
@@ -66,6 +69,15 @@ class ThreadUseCase {
     await this._threadRepository.getThreadById(threadId);
     await this._commentRepository.getCommentOwner(commentId);
     await this._replyRepository.deleteReplyById(replyId);
+  }
+
+  async likeCommentById({ commentId, userId }) {
+    const liked = await this._likeRepository.verifyLikedComment(commentId, userId);
+    if (!liked) {
+      await this._likeRepository.addLikeByCommentId(commentId, userId);
+    } else {
+      await this._likeRepository.deleteLikeByCommentId(commentId, userId);
+    }
   }
 }
 module.exports = ThreadUseCase;
