@@ -18,14 +18,6 @@ const LikesTableTestHelper = {
     return result.rows;
   },
 
-  async deleteLikes({ commentId, userId }) {
-    const query = {
-      text: 'DELETE FROM likes WHERE comment_id = $1 AND owner = $2',
-      values: [commentId, userId],
-    };
-    await pool.query(query);
-  },
-
   async cleanTable() {
     const query = {
       text: 'DELETE FROM likes WHERE 1=1',
