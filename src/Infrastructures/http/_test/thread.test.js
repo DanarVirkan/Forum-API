@@ -6,6 +6,7 @@ const injections = require('../../injections');
 const createServer = require('../createServer');
 const CommentsTableTestHelper = require('../../../../tests/CommentsTableTestHelper');
 const RepliesTableTestHelper = require('../../../../tests/RepliesTableTestHelper');
+const LikesTableTestHelper = require('../../../../tests/LikesTableTestHelper');
 
 describe('/threads endpoint', () => {
   afterAll(async () => {
@@ -13,6 +14,7 @@ describe('/threads endpoint', () => {
   });
 
   afterEach(async () => {
+    await LikesTableTestHelper.cleanTable();
     await RepliesTableTestHelper.cleanTable();
     await CommentTableTestHelper.cleanTable();
     await ThreadTableTestHelper.cleanTable();
@@ -282,9 +284,6 @@ describe('/threads endpoint', () => {
       const threadId = 'thread-123';
       const commentId = 'comment-123';
       const replyId = 'reply-123';
-      const payload = {
-        content: 'isi balasan',
-      };
 
       await UsersTableTestHelper.addUser({ id: userId });
       await ThreadTableTestHelper.addThread(threadId, {}, userId);
@@ -356,6 +355,55 @@ describe('/threads endpoint', () => {
       });
 
       expect(response.statusCode).toEqual(403);
+    });
+  });
+
+  describe('when PUT /threads/{threadId}/comments/{commentId}/likes', () => {
+    it('should response 200', async () => {
+      const userId = 'user-123';
+      const threadId = 'thread-123';
+      const commentId = 'comment-123';
+
+      await UsersTableTestHelper.addUser({ id: userId });
+      await ThreadTableTestHelper.addThread(threadId, {}, userId);
+      await CommentsTableTestHelper.addComment(commentId, {}, userId, threadId);
+
+      const server = await createServer(injections);
+      const response = await server.inject({
+        method: 'PUT',
+        url: `/threads/${threadId}/comments/${commentId}/likes`,
+        auth: {
+          strategy: 'forum_jwt',
+          credentials: {
+            id: userId,
+          },
+        },
+      });
+
+      expect(response.statusCode).toEqual(200);
+    });
+    it('should response 404 when comment or thread invalid', async () => {
+      const userId = 'user-123';
+      const threadId = 'thread-123';
+      const commentId = 'comment-123';
+
+      await UsersTableTestHelper.addUser({ id: userId });
+      await ThreadTableTestHelper.addThread(threadId, {}, userId);
+      await CommentsTableTestHelper.addComment(commentId, {}, userId, threadId);
+
+      const server = await createServer(injections);
+      const response = await server.inject({
+        method: 'PUT',
+        url: '/threads/thread-666/comments/comment-666/likes',
+        auth: {
+          strategy: 'forum_jwt',
+          credentials: {
+            id: userId,
+          },
+        },
+      });
+
+      expect(response.statusCode).toEqual(404);
     });
   });
 });
