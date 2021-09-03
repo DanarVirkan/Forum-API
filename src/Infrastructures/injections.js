@@ -12,6 +12,7 @@ const AuthenticationRepositoryPostgres = require('./repository/AuthenticationRep
 const ThreadRepositoryPostgres = require('./repository/ThreadRepositoryPostgres');
 const ReplyRepositoryPostgres = require('./repository/ReplyRepositoryPostgres');
 const CommentRepositoryPostgres = require('./repository/CommentRepositoryPostgres');
+const LikeRepositoryPostgres = require('./repository/LikeRepositoryPostgres');
 const BcryptEncryptionHelper = require('./security/BcryptEncryptionHelper');
 const JwtTokenManager = require('./security/JwtTokenManager');
 
@@ -28,6 +29,7 @@ const serviceInstanceContainer = {
   threadRepository: new ThreadRepositoryPostgres(pool, nanoid),
   replyRepository: new ReplyRepositoryPostgres(pool, nanoid),
   commentRepository: new CommentRepositoryPostgres(pool, nanoid),
+  likeRepository: new LikeRepositoryPostgres(pool, nanoid),
   encryptionHelper: new BcryptEncryptionHelper(bcrypt),
   authenticationTokenManager: new JwtTokenManager(Jwt.token),
 };
@@ -54,6 +56,7 @@ const useCaseInstanceContainer = {
     threadRepository: serviceInstanceContainer.threadRepository,
     commentRepository: serviceInstanceContainer.commentRepository,
     replyRepository: serviceInstanceContainer.replyRepository,
+    likeRepository: serviceInstanceContainer.likeRepository,
   }),
 };
 
