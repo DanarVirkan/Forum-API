@@ -69,17 +69,24 @@ describe('ThreadUseCase', () => {
     const mockThreadRepository = new ThreadRepository();
     mockThreadRepository.getThreadById = jest.fn()
       .mockImplementation(() => Promise.resolve(expectedThread));
+
     const mockCommentRepository = new CommentRepository();
     mockCommentRepository.getCommentByThreadId = jest.fn()
       .mockImplementation(() => Promise.resolve(arrayComment));
+
     const mockReplyRepository = new ReplyRepository();
     mockReplyRepository.getReplyByCommentId = jest.fn()
       .mockImplementation(() => Promise.resolve(arrayReply));
+
+    const mockLikeRepository = new LikeRepository();
+    mockLikeRepository.getLikeCountByCommentId = jest.fn()
+      .mockImplementation(() => Promise.resolve());
 
     const getThreadUseCase = new ThreadUseCase({
       threadRepository: mockThreadRepository,
       commentRepository: mockCommentRepository,
       replyRepository: mockReplyRepository,
+      likeRepository: mockLikeRepository,
     });
 
     await getThreadUseCase.getThreadById(threadId);
@@ -209,9 +216,11 @@ describe('ThreadUseCase', () => {
     const mockThreadRepository = new ThreadRepository();
     mockThreadRepository.getThreadById = jest.fn()
       .mockImplementation(() => Promise.resolve());
+
     const mockCommentRepository = new CommentRepository();
     mockCommentRepository.getCommentOwner = jest.fn()
       .mockImplementation(() => Promise.resolve());
+
     const mockReplyRepository = new ReplyRepository();
     mockReplyRepository.deleteReplyById = jest.fn()
       .mockImplementation(() => Promise.resolve());
@@ -236,6 +245,14 @@ describe('ThreadUseCase', () => {
     const userId = 'user-123';
     const commentId = 'comment-123';
 
+    const mockThreadRepository = new ThreadRepository();
+    mockThreadRepository.getThreadById = jest.fn()
+      .mockImplementation(() => Promise.resolve());
+
+    const mockCommentRepository = new CommentRepository();
+    mockCommentRepository.getCommentOwner = jest.fn()
+      .mockImplementation(() => Promise.resolve());
+
     const mockLikeRepository = new LikeRepository();
     mockLikeRepository.addLikeByCommentId = jest.fn()
       .mockImplementation(() => Promise.resolve());
@@ -246,6 +263,8 @@ describe('ThreadUseCase', () => {
 
     const getThreadUseCase = new ThreadUseCase({
       likeRepository: mockLikeRepository,
+      threadRepository: mockThreadRepository,
+      commentRepository: mockCommentRepository,
     });
 
     await getThreadUseCase.likeCommentById({ commentId, userId });
@@ -265,8 +284,18 @@ describe('ThreadUseCase', () => {
     mockLikeRepository.verifyLikedComment = jest.fn()
       .mockImplementation(() => Promise.resolve(1));
 
+    const mockThreadRepository = new ThreadRepository();
+    mockThreadRepository.getThreadById = jest.fn()
+      .mockImplementation(() => Promise.resolve());
+
+    const mockCommentRepository = new CommentRepository();
+    mockCommentRepository.getCommentOwner = jest.fn()
+      .mockImplementation(() => Promise.resolve());
+
     const getThreadUseCase = new ThreadUseCase({
       likeRepository: mockLikeRepository,
+      threadRepository: mockThreadRepository,
+      commentRepository: mockCommentRepository,
     });
 
     await getThreadUseCase.likeCommentById({ commentId, userId });
